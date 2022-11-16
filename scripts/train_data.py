@@ -70,7 +70,26 @@ class CifarData(object):
             download_url(url, self.folder_path, filename=filename, md5=tgz_md5)
 
             with tarfile.open(os.path.join(self.folder_path, filename), "r:gz") as tar:
-                tar.extractall(path=self.folder_path)
+                def is_within_directory(directory, target):
+                    
+                    abs_directory = os.path.abspath(directory)
+                    abs_target = os.path.abspath(target)
+                
+                    prefix = os.path.commonprefix([abs_directory, abs_target])
+                    
+                    return prefix == abs_directory
+                
+                def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+                
+                    for member in tar.getmembers():
+                        member_path = os.path.join(path, member.name)
+                        if not is_within_directory(path, member_path):
+                            raise Exception("Attempted Path Traversal in Tar File")
+                
+                    tar.extractall(path, members, numeric_owner=numeric_owner) 
+                    
+                
+                safe_extract(tar, path=self.folder_path)
 
         # download cifar100
         base_folder = 'cifar-100-python'
@@ -92,7 +111,26 @@ class CifarData(object):
         if not _check_integrity(train_list + test_list, base_folder):
             download_url(url, self.folder_path, filename=filename, md5=tgz_md5)
             with tarfile.open(os.path.join(self.folder_path, filename), "r:gz") as tar:
-                tar.extractall(path=self.folder_path)
+                def is_within_directory(directory, target):
+                    
+                    abs_directory = os.path.abspath(directory)
+                    abs_target = os.path.abspath(target)
+                
+                    prefix = os.path.commonprefix([abs_directory, abs_target])
+                    
+                    return prefix == abs_directory
+                
+                def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+                
+                    for member in tar.getmembers():
+                        member_path = os.path.join(path, member.name)
+                        if not is_within_directory(path, member_path):
+                            raise Exception("Attempted Path Traversal in Tar File")
+                
+                    tar.extractall(path, members, numeric_owner=numeric_owner) 
+                    
+                
+                safe_extract(tar, path=self.folder_path)
 
     def load_cifar10(self):
         path = os.path.join(self.folder_path, "cifar-10-batches-py/batches.meta")
